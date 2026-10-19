@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Data (datasets téléchargés)
+data/
+*.zip
+*.tar.gz
+
+# Modèles & checkpoints
+checkpoints/
+models/
+*.ckpt
+*.safetensors
+
+# Environnement
+.env
+.env.local
+
+# Sorties d'expériences
+mlruns/
+runs/
+*.log
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

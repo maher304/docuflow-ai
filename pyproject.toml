@@ -1,0 +1,38 @@
+[project]
+name = "docuflow-ai"
+version = "0.1.0"
+description = "Monorepo docuflow-ai : OCR, VLM, classification de mise en page et ingestion documentaire."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = []
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["docs", "mlruns", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "B008",  # FastAPI: Depends() dans les defaults d'arguments
+    "SIM108",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "shared/tests",
+    "modules/01-ocr-pipeline/tests",
+    "modules/02-vlm-extraction/tests",
+    "modules/03-layout-classification/tests",
+    "modules/04-ingestion-platform/tests",
+]
+addopts = "-q --strict-markers"
+markers = [
+    "slow: tests longs (téléchargement de modèles)",
+    "integration: tests d'intégration nécessitant des services externes",
+    "e2e: tests de bout en bout nécessitant docker-compose",
+]
+filterwarnings = ["ignore::DeprecationWarning"]
