@@ -14,5 +14,8 @@ dependencies = [
     "structlog>=24.1",
 ]
 
+[project.scripts]
+docuflow = "docuflow_shared.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]

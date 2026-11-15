@@ -1,11 +1,12 @@
+import json
 from pathlib import Path
 
 import numpy as np
 import pytest
-from pydantic import ValidationError
-
 from docuflow_shared import BoundingBox, Invoice, InvoiceLine, OCRBlock, OCRResult
+from docuflow_shared.cli import validate_invoice
 from docuflow_shared.utils import env_flag, is_image_path, list_sample_images
+from pydantic import ValidationError
 
 
 def test_bounding_box_invalid_order():
@@ -64,9 +65,8 @@ def test_list_sample_images(tmp_path: Path):
 
 
 def test_load_image_gray_roundtrip():
-    from docuflow_shared.utils import load_image_gray
-
     import cv2
+    from docuflow_shared.utils import load_image_gray
 
     img = (np.random.default_rng(0).random((32, 48)) * 255).astype(np.uint8)
     ok, buf = cv2.imencode(".png", img)
@@ -76,3 +76,22 @@ def test_load_image_gray_roundtrip():
 
     with pytest.raises(ValueError):
         load_image_gray(b"not-an-image")
+
+
+def test_validate_invoice_cli_normalizes_output(monkeypatch, capsys):
+    monkeypatch.setattr(
+        "docuflow_shared.cli._read_json", lambda _: {"currency": "eur", "total": "1.20"}
+    )
+
+    assert validate_invoice(Path("invoice.json")) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output["valid"] is True
+    assert output["invoice"]["currency"] == "EUR"
+    assert output["invoice"]["total"] == "1.20"
+
+
+def test_validate_invoice_cli_reports_invalid_input(monkeypatch, capsys):
+    monkeypatch.setattr("docuflow_shared.cli._read_json", lambda _: {"unexpected": True})
+
+    assert validate_invoice(Path("invoice.json")) == 1
+    assert json.loads(capsys.readouterr().out)["valid"] is False

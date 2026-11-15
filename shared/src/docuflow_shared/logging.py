@@ -36,9 +36,7 @@ def configure_logging(
         renderer = structlog.dev.ConsoleRenderer()
 
     structlog.configure(
-        wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(logging, level, logging.INFO)
-        ),
+        wrapper_class=structlog.make_filtering_bound_logger(getattr(logging, level, logging.INFO)),
         processors=[*shared, renderer],
         logger_factory=structlog.PrintLoggerFactory(sys.stdout),
         cache_logger_on_first_use=True,

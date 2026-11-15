@@ -19,9 +19,9 @@ jobs:
       - name: Install ruff
         run: uv pip install --system ruff
       - name: Ruff check
-        run: ruff check shared modules scripts
+        run: ruff check shared
       - name: Ruff format
-        run: ruff format --check shared modules scripts
+        run: ruff format --check shared
 
   test:
     runs-on: ubuntu-latest
@@ -36,27 +36,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install project (base, sans dépendances lourdes)
+      - name: Install shared package and development dependencies
         run: |
-          uv pip install --system \
-            -e ./shared \
-            -e ./modules/01-ocr-pipeline \
-            -e ./modules/02-vlm-extraction \
-            -e ./modules/03-layout-classification \
-            -e ./modules/04-ingestion-platform \
-            -r requirements-dev.txt
+          uv pip install --system -e ./shared -r requirements-dev.txt
       - name: Unit tests
         run: python -m pytest -m "not slow and not integration and not e2e"
-
-  docker:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build des images Docker des modules
-        run: |
-          docker build -f modules/01-ocr-pipeline/Dockerfile -t docuflow/ocr:ci .
-          docker build -f modules/02-vlm-extraction/Dockerfile -t docuflow/vlm:ci .
-          docker build -f modules/03-layout-classification/Dockerfile -t docuflow/layout:ci .
-          docker build -f modules/04-ingestion-platform/Dockerfile -t docuflow/ingestion:ci .
-      - name: Validation du docker-compose
-        run: docker compose -f docker-compose.yml config -q

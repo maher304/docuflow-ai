@@ -45,7 +45,7 @@ def default_device() -> str:
         import torch
 
         return "cuda" if torch.cuda.is_available() else "cpu"
-    except Exception:  # noqa: BLE001 - torch optionnel
+    except Exception:  # torch is an optional dependency
         return "cpu"
 
 

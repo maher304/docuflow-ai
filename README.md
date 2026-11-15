@@ -1,80 +1,69 @@
 # docuflow-ai
 
-Plateforme open source d'**IA documentaire** : OCR multi-moteurs, extraction structurée
-par modèles vision-langage (VLM), analyse de mise en page et ingestion documentaire à
-grande échelle.
+# DocuFlow AI
 
-> **Statut des métriques** : aucun benchmark n'a encore été exécuté dans ce dépôt.
-> Tous les chiffres sont marqués **« À exécuter »** jusqu'à l'exécution de
-> `make bench` (voir [docs/results.md](docs/results.md)).
+Socle Python open source pour les flux documentaires : schémas Pydantic partagés, utilitaires et outils de validation. Le dépôt contient actuellement le paquet `docuflow-shared` ; les services OCR, VLM, classification, ingestion, API et benchmarks annoncés dans d'anciennes versions de la documentation ne sont pas encore implémentés.
 
-## Modules
+## Prérequis
 
-| Module | Rôle | API |
-|---|---|---|
-| [`modules/01-ocr-pipeline`](modules/01-ocr-pipeline/) | OCR multi-moteurs (Tesseract, PaddleOCR, docTR) + prétraitement OpenCV | `POST /ocr`, `POST /ocr/batch`, `GET /jobs/{id}` |
-| [`modules/02-vlm-extraction`](modules/02-vlm-extraction/) | Extraction structurée de factures par VLM (Qwen2-VL / Florence-2) | `POST /extract/invoice` |
-| [`modules/03-layout-classification`](modules/03-layout-classification/) | LayoutLMv3 (labelling) + classification de type de document | `POST /classify`, `POST /layout/label` |
-| [`modules/04-ingestion-platform`](modules/04-ingestion-platform/) | Pipeline d'ingestion (Celery), stockage PostgreSQL + pgvector, recherche sémantique | `POST /documents`, `GET /search`, … |
-
-Le schéma d'architecture détaillé est dans [docs/architecture.md](docs/architecture.md).
+- Python 3.11 ou plus récent
+- `make` facultatif (les commandes Python fonctionnent aussi directement sous Windows)
 
 ## Installation
 
-Prérequis : Python 3.11+, Docker (pour la plateforme complète).
-
 ```bash
-git clone https://github.com/<org>/docuflow-ai.git
-cd docuflow-ai
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-make install-dev
+python -m venv .venv
+# Linux/macOS : source .venv/bin/activate
+# Windows PowerShell : .venv\Scripts\Activate.ps1
+python -m pip install -e ./shared
+python -m pip install -r requirements-dev.txt
 ```
 
-Configuration : copier `.env.example` vers `.env` et ajuster (moteurs OCR, modèles VLM,
-URLs de services). Les dépendances lourdes (Tesseract, PaddleOCR, docTR, torch) sont
-optionnelles et activables par extras — voir les README de chaque module.
+## Valider une facture JSON
 
-## Commandes make
+Le CLI valide les champs avec le schéma `Invoice`, normalise la devise et les dates, puis émet le document normalisé en JSON. Il retourne le code 0 en cas de succès et 1 si le document est invalide ou illisible.
 
 ```bash
-make install     # installer shared + les 4 modules
-make install-dev # + pytest, ruff, pre-commit
-make test        # tests unitaires (sans dépendances lourdes)
-make test-all    # tous les tests
-make lint        # ruff check + format
-make bench       # benchmarks -> docs/results.md
-make data        # télécharger FUNSD / SROIE dans data/
-make up          # docker compose up (plateforme complète)
-make down        # arrêter la plateforme
+docuflow validate-invoice invoice.json
+# Sans installation du CLI :
+python -m docuflow_shared.cli validate-invoice invoice.json
 ```
 
-## Démarrage rapide (API)
+Exemple de `invoice.json` :
+
+```json
+{
+  "vendor": "Acme",
+  "invoice_date": "2026-05-12",
+  "invoice_number": "INV-42",
+  "currency": "eur",
+  "total": "12.50",
+  "lines": [{"description": "Service", "quantity": 1, "amount": "12.50"}]
+}
+```
+
+Les champs inconnus sont refusés. Pour contrôler une facture :
+
+```python
+from docuflow_shared import Invoice
+
+invoice = Invoice.model_validate_json(open("invoice.json", encoding="utf-8").read())
+print(invoice.lines_sum())
+```
+
+## Développement
 
 ```bash
-# Module 1 — OCR
-uvicorn docuflow_ocr.api.app:app --port 8001 &
-curl -X POST "http://localhost:8001/ocr?engine=tesseract&preprocess=true" \
-     -F "file=@scan.png"
-
-# Module 2 — Extraction de facture
-curl -X POST "http://localhost:8002/extract/invoice" \
-     -F "file=@invoice.jpg"
-
-# Module 4 — Plateforme complète
-docker compose up --build -d
-curl -X POST "http://localhost:8000/documents" -F "file=@invoice.jpg"
-curl "http://localhost:8000/search?q=total%20facture"
+make install-dev  # paquet partagé et outils de développement
+make test         # tests unitaires
+make lint         # Ruff : lint et format
 ```
 
-## Benchmarks
+Ou utilisez `python -m pytest` et `ruff check shared` directement. La suite de tests ne requiert pas de téléchargement de modèles ni de services externes.
 
-```bash
-make bench   # CER/WER OCR (SROIE), F1 extraction (CORD/SROIE) -> docs/results.md
-```
+## État du projet
 
-Les résultats sont écrits automatiquement dans
-[docs/results.md](docs/results.md) ; le README n'affiche que des chiffres issus
-de ces exécutions (sinon « À exécuter »).
+Les schémas disponibles comprennent les types de documents, statuts de pipeline, boîtes, résultats OCR et factures. Les dépendances de modèles lourds restent optionnelles et ne sont pas nécessaires pour les fonctions présentes. Les anciennes commandes `bench`, `data`, `up` et `down` ont été retirées tant que les modules et configurations correspondants ne sont pas dans le dépôt.
 
 ## Licence
 

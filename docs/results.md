@@ -1,19 +1,3 @@
-# Résultats d'évaluation
+# Évaluations
 
-> **Généré automatiquement** par `make bench` / `scripts/run_all_benchmarks.sh`.
-> Ne pas éditer à la main. Aucun chiffre n'est inventé : une métrique non exécutée
-> apparaît comme « À exécuter ».
-
-Dernière exécution : **jamais**
-
-## Module 1 — OCR (CER / WER)
-
-À exécuter.
-
-## Module 2 — Extraction structurée (F1 par champ)
-
-À exécuter.
-
-## Module 3 — Classification de document
-
-À exécuter.
+Aucun benchmark OCR, extraction ou classification n'est disponible : ces modules et leurs données de référence ne sont pas présents dans le dépôt. Les anciens résultats « à exécuter » ont été retirés afin de ne pas suggérer qu'une commande de benchmark est disponible.

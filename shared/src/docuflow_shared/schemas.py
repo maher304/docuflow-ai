@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -16,7 +16,7 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
-class DocType(str, Enum):
+class DocType(StrEnum):
     """Type de document détecté par le module 3."""
 
     INVOICE = "invoice"
@@ -25,7 +25,7 @@ class DocType(str, Enum):
     OTHER = "other"
 
 
-class ExtractionStatus(str, Enum):
+class ExtractionStatus(StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     SUCCEEDED = "succeeded"
@@ -33,7 +33,7 @@ class ExtractionStatus(str, Enum):
     PARTIAL = "partial"
 
 
-class PipelineStepName(str, Enum):
+class PipelineStepName(StrEnum):
     """Étapes du pipeline d'ingestion (module 4)."""
 
     CLASSIFY = "classify"
@@ -43,7 +43,7 @@ class PipelineStepName(str, Enum):
     STORE = "store"
 
 
-class StepStatus(str, Enum):
+class StepStatus(StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     SUCCEEDED = "succeeded"
